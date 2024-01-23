@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>double or nothing</title>
+    <style>
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        body {
+            height: 1500px;
+            background: linear-gradient(to bottom, #F4A460 0%, #A0522D 50%);
+        }
+
+        p, div {
+            font-size: 30px;
+        }
+
+        #results {
+            margin-top: 10px;
+        }
+
+        #actionButtons {
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        let spielerGeld = 100; // Anfangsbetrag des Spielers
+        let gespeichertesGeld = 0;   // Separates Sparkonto
+
+        function spielStarten(aktion) {
+            document.getElementById("balance").innerText = `Spielkonto: $${spielerGeld}`;
+            document.getElementById("saveAccount").innerText = `Sparkonto: $${gespeichertesGeld}`;
+
+            // Benachrichtigungen löschen
+            document.getElementById("results").innerHTML = '';
+
+            switch (aktion) {
+                case "2x":
+                    ergebnisAktualisieren(2, 0.38);
+                    break;
+                case "3x":
+                    ergebnisAktualisieren(3, 0.28);
+                    break;
+                case "10x":
+                    ergebnisAktualisieren(10, 0.09);
+                    break;
+                case "quit":
+                    spielZurücksetzen();
+                    break;
+                case "payout":
+                    auszahlen();
+                    break;
+                case "transfer100":
+                    zumSpielenÜbertragen(100);
+                    break;
+                case "transfer200":
+                    zumSpielenÜbertragen(200);
+                    break;
+                case "transfer500":
+                    zumSpielenÜbertragen(500);
+                    break;
+                case "transfer1000":
+                    zumSpielenÜbertragen(1000);
+                    break;
+                case "info":
+                    Infoanzeige();
+                    break;
+                default:
+                    displayResult("Ungültige Aktion. Bitte versuchen Sie es erneut.");
+            }
+
+            // OK-Button anzeigen
+            okButtonAnzeigen();
+        }
+
+        function ergebnisAktualisieren(multiplikator, gewinnWahrscheinlichkeit) {
+            // Gewinnchance berechnen
+            const gewinnChance = Math.random() < gewinnWahrscheinlichkeit;
+
+            // 5% Chance, alles zu verlieren
+            const allesVerlierenChance = Math.random() < 0.05;
+
+            if (gewinnChance) {
+                // Spieler gewinnt
+                spielerGeld *= multiplikator;
+                displayResult(`Herzlichen Glückwunsch! Du hast dein Geld um das ${multiplikator}-fache erhöht.`);
+            } else if (allesVerlierenChance || spielerGeld <= 0) {
+                // 5% Chance zu verlieren oder Spieler hat bereits alles verloren
+                spielerGeld = 0;
+                displayResult("Oops! Du hast alles verloren. Viel Glück beim nächsten Mal!");
+            } else {
+                // Spieler verliert - die Hälfte des Geldes abziehen
+                spielerGeld = Math.floor(spielerGeld / 2);
+                displayResult(`Sorry, du hast verloren. Du hast jetzt $${spielerGeld}.`);
+            }
+        }
+
+        function auszahlen() {
+            // Überprüfen, ob der Spieler mindestens $100 hat, um eine Auszahlung durchzuführen
+            if (spielerGeld >= 100) {
+                // Alles Geld außer $100 auf das separate Sparkonto übertragen
+                gespeichertesGeld += spielerGeld - 100;
+                spielerGeld = 100;
+                displayResult(`Du hast dich entschieden auszuzahlen. $${spielerGeld} verbleibt auf deinem Spielkonto. Der Rest ($${gespeichertesGeld}) wird auf dein Sparkonto überwiesen.`);
+            } else {
+                displayResult("Du benötigst mindestens $100, um eine Auszahlung durchzuführen.");
+            }
+        }
+
+        function zumSpielenÜbertragen(betrag) {
+            // Den angegebenen Betrag vom Sparkonto auf das Spielkonto übertragen
+            if (gespeichertesGeld >= betrag) {
+                gespeichertesGeld -= betrag;
+                spielerGeld += betrag;
+                displayResult(`Du hast $${betrag} von deinem Sparkonto auf dein Spielkonto überwiesen. Spielkonto: $${spielerGeld}`);
+            } else {
+                displayResult("Nicht genügend Geld auf deinem Sparkonto.");
+            }
+        }
+
+        function spielZurücksetzen() {
+            // Spielergeld und Sparkonto zurücksetzen
+            spielerGeld = 100;
+            gespeichertesGeld = 0;
+            displayResult("Spiel wird beendet. Geld wurde auf $100 zurückgesetzt.");
+        }
+
+        function Infoanzeige() {
+            // Zeigt Infos zum Spielereignis an
+            displayResult("2x Gewinn chance = 38%");
+            displayResult("3x Gewinn chance = 28%");
+            displayResult("10x Gewinnchance 9%");
+            displayResult("5% chance um Spielkonto auf 0$ setzen, darum auszahlen")
+            displayResult("Auszahlung kann nur über 100$ ausgeführt werden 100$ bleiben immer im Spielkonto zurück")
+        }
+
+        function displayResult(message) {
+            const resultsElement = document.getElementById("results");
+            resultsElement.innerHTML += `<p>${message}</p>`;
+            document.getElementById("balance").innerText = `Spielkonto: $${spielerGeld}`;
+            document.getElementById("saveAccount").innerText = `Sparkonto: $${gespeichertesGeld}`;
+        }
+
+        function okButtonAnzeigen() {
+            // OK-Button anzeigen
+            document.getElementById("okBtn").style.display = "block";
+
+            // Andere Buttons deaktivieren
+            document.getElementById("2xBtn").disabled = true;
+            document.getElementById("3xBtn").disabled = true;
+            document.getElementById("10xBtn").disabled = true;
+            document.getElementById("payoutBtn").disabled = true;
+            document.getElementById("transfer100Btn").disabled = true;
+            document.getElementById("transfer200Btn").disabled = true;
+            document.getElementById("transfer500Btn").disabled = true;
+            document.getElementById("transfer1000Btn").disabled = true;
+            document.getElementById("info").disabled = true;
+            document.getElementById("quitBtn").disabled = true;
+        }
+
+        function kontostandAktualisieren() {
+            // Kontostand aktualisieren und OK-Button verbergen
+            document.getElementById("balance").innerText = `Spielkonto: $${spielerGeld}`;
+            okButtonVerbergen();
+            // Benachrichtigungen löschen
+            document.getElementById("results").innerHTML = '';
+
+            // Buttons aktivieren
+            buttonsAktivieren();
+        }
+
+        function okButtonVerbergen() {
+            // OK-Button verbergen
+            document.getElementById("okBtn").style.display = "none";
+        }
+
+        function buttonsAktivieren() {
+            // Alle Buttons aktivieren
+            document.getElementById("2xBtn").disabled = false;
+            document.getElementById("3xBtn").disabled = false;
+            document.getElementById("10xBtn").disabled = false;
+            document.getElementById("payoutBtn").disabled = false;
+            document.getElementById("transfer100Btn").disabled = false;
+            document.getElementById("transfer200Btn").disabled = false;
+            document.getElementById("transfer500Btn").disabled = false;
+            document.getElementById("transfer1000Btn").disabled = false;
+            document.getElementById("info").disabled = false
+            document.getElementById("quitBtn").disabled = false;
+        }
+    </script>
+</head>
+<body>
+
+    <h1>double or nothing</h1>
+    <p id="balance">Spielkonto: $100</p>
+
+    <div>
+        <button id="2xBtn" onclick="spielStarten('2x')">2x</button>
+        <button id="3xBtn" onclick="spielStarten('3x')">3x</button>
+        <button id="10xBtn" onclick="spielStarten('10x')">10x</button>
+        <button id="payoutBtn" onclick="spielStarten('payout')">Alles Auszahlen</button>
+    </div>
+
+    <div id="saveAccount">Sparkonto: $0</div>
+
+    <div id="actionButtons">
+        <button id="transfer100Btn" onclick="spielStarten('transfer100')">$100 zum Spielen übertragen</button>
+        <button id="transfer200Btn" onclick="spielStarten('transfer200')">$200 zum Spielen übertragen</button>
+        <button id="transfer500Btn" onclick="spielStarten('transfer500')">$500 zum Spielen übertragen</button>
+        <button id="transfer1000Btn" onclick="spielStarten('transfer1000')">$1000 zum Spielen übertragen</button>
+        <br>
+        <button id="quitBtn" onclick="spielStarten('quit')">Neues Spiel</button>
+        <br>
+        <button id="info" onclick="spielStarten('info')">info</button>
+    </div>
+
+    <div>
+        <button id="okBtn" style="display: none;" onclick="kontostandAktualisieren()">OK</button>
+    </div>
+
+    <div id="results"></div>
+
+</body>
+</html>
